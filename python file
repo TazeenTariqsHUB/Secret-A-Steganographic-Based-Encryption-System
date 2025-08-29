@@ -1,0 +1,254 @@
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+class NameChanger:
+    def __init__(self):
+        self.name_change_history = []
+        self.name_substitutions = [
+            ("Ahmed", "Ayesha"), ("Ahmad", "Aisha"), ("Muhammad", "Fatima"), ("Ali", "Mariam"),
+            ("Hassan", "Zainab"), ("Usman", "Hira"), ("Bilal", "Aiza"),
+            ("Omar", "Sana"), ("Ibrahim", "Amna"), ("Hamza", "Sara"),
+            ("Zain", "Mahnoor"), ("Rayyan", "Alishba"), ("Haris", "Zunaira"),
+            ("Saad", "Laiba"), ("Farhan", "Anaya"), ("Taha", "Hania"),
+            ("Yusuf", "Dua"), ("Abdullah", "Mehak"), ("Arham", "Rida"),
+            ("Zayan", "Zoya"), ("Shayan", "Kiran"),
+            ("Uzair", "Tazeen"), ("Tariq", "Minahil"), ("Mahinn", "Saima"),
+            ("Qaiser", "Zareen"), ("Essa", "Tehzeeb"), ("Musa", "Saman"),
+            ("Dawood", "Ammarah"), ("Shoiab", "Fatima")
+        ]
+        self.weapon_substitutions = [
+            # Handguns
+            ("Pistol", "Rose"),
+            ("Glock", "Tulip"),
+            ("Desert Eagle", "Lily"),
+            ("Revolver", "Wisteria"),
+            ("Colt Python", "Yarrow"),
+            # Rifles
+            ("Rifle", "Aster"),
+            ("AK-47", "Azalea"),
+            ("M16", "Bird of Paradise"),
+            ("Sniper rifle", "Black-Eyed Susan"),
+            ("Barrett .50 cal", "Bleeding Heart"),
+            # Shotguns
+            ("Shotgun", "Bougainvillea"),
+            ("Remington 870", "Calla Lily"),
+            ("Benelli M4", "Canterbury Bells"),
+            # Submachine guns
+            ("Submachine gun", "Cherry Blossom"),
+            ("MP5", "Columbine"),
+            ("Uzi", "Cornflower"),
+            # Machine guns
+            ("Machine gun", "Cowslip"),
+            ("M249 SAW", "Cyclamen"),
+            ("M60", "Dandelion"),
+            # Heavy weapons
+            ("Grenade launcher", "Edelweiss"),
+            ("M203", "Forget-Me-Not"),
+            ("RPG-7", "Freesia"),
+            ("Cannon", "Fuchsia"),
+            ("Mortar", "Gaillardia"),
+            ("Howitzer", "Geranium"),
+            # Anti-tank weapons
+            ("Anti-tank missile", "Goldenrod"),
+            ("Javelin", "Hellebore"),
+            # Simple weapons
+            ("knife", "white"),
+            ("gun", "blue"),
+            ("tank", "pinkrose"),
+            ("dagger", "blackrose"),
+            # Violent Terms
+            ("bloody", "pretty"),
+            ("blood", "cute"),
+            ("kill", "fight"),
+            ("killing", "fighting"),
+            ("killed", "wrote"),
+            ("shot", "paint"),
+            ("shooting", "swimming"),
+            ("stabbed", "climbed"),
+            ("stab", "skip"),
+            ("stabbing", "dancing"),
+            ("hunt", "catch"),
+            ("hurt", "cure"),
+            ("betrayed", "ensured"),
+            ("hate", "loved"),
+            ("punch", "hug"),
+            ("beat", ";love"),
+            ("beating", "watching"),
+            ("hit", "study"),
+            ("hitting", "eating"),
+            ("assault", "ate"),
+            ("assaulted", "danced"),
+            ("sexual", "Secure"),
+            ("violence", "peace"),
+            ("violent", "peacefully")
+        ]
+
+    def get_substitution(self, current_name: str) -> str:
+        current_name = current_name.lower()
+        for original, substituted in self.name_substitutions + self.weapon_substitutions:
+            if current_name == original.lower():
+                return substituted
+            if current_name == substituted.lower():
+                return original
+        return current_name
+
+class SubstitutionCipher:
+    def __init__(self):
+        self.name_changer = NameChanger()
+        self.key = "ZYXWVUTSRQPONMLKJIHGFEDCBA"
+        self.name_substitutions = self.name_changer.name_substitutions
+        self.gender_substitutions = [("he", "she"), ("him", "her"), ("his", "hers"), ("boy", "girl"), ("man", "woman"), ("brother", "sister"), ("sister", "brother")]
+        self.weapon_substitutions = self.name_changer.weapon_substitutions
+        logger.debug("Initialized with key: %s", self.key)
+
+    def make_plural(self, word: str) -> str:
+        if not word or not isinstance(word, str):
+            return word
+        if word[-1] in "sxz" or word[-2:] in ["sh", "ch"]:
+            return word + "es"
+        if word[-1] == "y" and word[-2] not in "aeiou":
+            return word[:-1] + "ies"
+        return word + "s"
+
+    def is_valid_key(self, k: str) -> bool:
+        if len(k) != 26 or not k.isalpha():
+            return False
+        return len(set(k.lower())) == 26
+
+    def set_key(self, k: str) -> None:
+        if self.is_valid_key(k):
+            self.key = k
+        else:
+            logger.warning("Invalid key! Using default key.")
+            self.key = "ZYXWVUTSRQPONMLKJIHGFEDCBA"
+
+    def substitute_names_in_text(self, text: str) -> str:
+        if not text or not isinstance(text, str):
+            return text
+        words = text.split()
+        substitutions = self.name_substitutions + self.gender_substitutions + self.weapon_substitutions
+        result = []
+        logger.debug("Substituting text: %s", text)
+
+        for word in words:
+            original_word = word
+            found = False
+            for orig, subst in sorted(substitutions, key=lambda x: len(x[0]), reverse=True):
+                try:
+                    if word.lower() == orig.lower():
+                        result.append(subst[0].upper() + subst[1:].lower() if word[0].isupper() else subst.lower())
+                        logger.debug("Swapped %s to %s", orig, subst)
+                        found = True
+                        break
+                    elif word.lower() == subst.lower():
+                        result.append(orig[0].upper() + orig[1:].lower() if word[0].isupper() else orig.lower())
+                        logger.debug("Swapped %s to %s", subst, orig)
+                        found = True
+                        break
+                except (AttributeError, IndexError) as e:
+                    logger.error("Substitution error for word %s: %s", word, str(e))
+                    result.append(original_word)
+                    break
+            if not found:
+                result.append(original_word)
+        return " ".join(result)
+
+    def encrypt(self, text: str) -> str:
+        if not text or not isinstance(text, str):
+            return text
+        text = self.substitute_names_in_text(text)
+        result = ""
+        logger.debug("Pre-substitution text: %s, Post-substitution text: %s", text, result)
+        for char in text:
+            if char.isalpha():
+                is_upper = char.isupper()
+                char = char.lower()
+                pos = ord(char) - ord('a')
+                if 0 <= pos < 26:
+                    new_char = self.key[pos]
+                    result += new_char.upper() if is_upper else new_char
+                    logger.debug("Encrypted char %s to %s at pos %d", char, new_char, pos)
+                else:
+                    logger.warning("Invalid character position: %s", char)
+                    result += char
+            else:
+                result += char
+        logger.debug("Encrypted result: %s", result)
+        return result
+
+    def decrypt(self, text: str) -> str:
+        if not text or not isinstance(text, str):
+            return text
+        result = ""
+        logger.debug("Decrypting text: %s", text)
+        # Create a reverse mapping for the key
+        key_map = {self.key[i].lower(): chr(ord('a') + i) for i in range(26)}
+        for char in text:
+            if char.isalpha():
+                is_upper = char.isupper()
+                char = char.lower()
+                if char in key_map:
+                    new_char = key_map[char]
+                    result += new_char.upper() if is_upper else new_char
+                    logger.debug("Decrypted char %s to %s", char, new_char)
+                else:
+                    logger.warning("Char %s not in key map, preserving as %s", char, char)
+                    result += char
+            else:
+                result += char
+        logger.debug("Decrypted result: %s", result)
+        return result  # No reverse substitution here for simple decrypt
+
+    def full_decrypt(self, text: str) -> str:
+        if not text or not isinstance(text, str):
+            return text
+        result = self.decrypt(text)
+        result = self.substitute_names_in_text(result)  # Swap back to original
+        logger.debug("Fully decrypted result after substitution: %s", result)
+        return result
+
+def get_multi_line_input(prompt: str) -> str:
+    print(prompt)
+    lines = []
+    while True:
+        line = input()
+        if line == "":
+            if lines and lines[-1] == "":
+                break
+            lines.append(line)
+        else:
+            lines.append(line)
+    return "\n".join(lines).strip()
+
+def cipher_menu(cipher: SubstitutionCipher) -> None:
+    while True:
+        print("\nCipher Menu:")
+        print("1. Encrypt")
+        print("2. Full Decrypt")
+        print("3. Simple Decrypt")
+        print("4. Reverse Substitutions")
+        print("5. Return to Main Menu")
+        choice = input("Enter your choice (1-5): ").strip()
+        if choice == "5":
+            break
+        text = get_multi_line_input("Enter text (press Enter twice to finish):")
+        if choice == "1":
+            print("Encrypted text:", cipher.encrypt(text))
+        elif choice == "2":
+            print("Fully decrypted text:", cipher.full_decrypt(text))
+        elif choice == "3":
+            print("Simply decrypted text:", cipher.decrypt(text))
+        elif choice == "4":
+            print("Text with reversed substitutions:", cipher.substitute_names_in_text(text))
+
+def main() -> None:
+    import random
+    random.seed()
+    cipher = SubstitutionCipher()
+    cipher_menu(cipher)
+
+if __name__ == "__main__":
+    main()
