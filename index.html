@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECRET</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .loading {
+            display: none;
+            color: #ff69b4;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SECRET</h1>
+            <p>Encrypt and decrypt your messages</p>
+        </div>
+
+        <div class="actions">
+            <button class="option-btn" onclick="processText('encrypt')">Encrypt</button>
+            <button class="option-btn" onclick="processText('full_decrypt')">Full Decrypt</button>
+            <button class="option-btn" onclick="processText('simple_decrypt')">Simple Decrypt</button>
+            <button class="option-btn" onclick="processText('reverse_sub')">Reverse Sub</button>
+        </div>
+
+        <div class="text-areas">
+            <div class="input-section">
+                <h2>Input Text</h2>
+                <textarea id="inputText" placeholder="Enter your text here..." rows="5" cols="50"></textarea>
+            </div>
+            <div class="result-section">
+                <h2>Result</h2>
+                <textarea id="resultText" readonly>Your results will appear here...</textarea>
+                <div id="loading" class="loading">Processing...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="action-btn process-btn" onclick="processText()">Process Text</button>
+            <button class="action-btn clear-btn" onclick="clearAll()">Clear All</button>
+        </div>
+    </div>
+
+    <script>
+        async function processText(action) {
+            const inputText = document.getElementById('inputText').value.trim();
+            const resultTextArea = document.getElementById('resultText');
+            const loadingDiv = document.getElementById('loading');
+
+            console.log('Button clicked with action:', action, 'and text:', inputText);
+
+            if (!action) {
+                resultTextArea.value = 'Please select an action (Encrypt, Full Decrypt, Simple Decrypt, or Reverse Sub).';
+                return;
+            }
+            if (!inputText) {
+                resultTextArea.value = 'Please enter some text.';
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            resultTextArea.value = '';
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: inputText, action: action }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Server response:', data);
+
+                if (data.error) {
+                    resultTextArea.value = `Error: ${data.error}`;
+                } else {
+                    resultTextArea.value = data.result || 'No result returned';
+                }
+            } catch (error) {
+                resultTextArea.value = `Error: ${error.message}`;
+                console.error('Fetch error:', error);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultText').value = 'Your results will appear here...';
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
